@@ -1,0 +1,223 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="4dp">
+
+    <LinearLayout
+        android:padding="3dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/abilityName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="БС"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/abilityDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Описание БС"
+            android:textSize="14sp" />
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/mechName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:text="Мех"
+                app:layout_constraintBottom_toTopOf="@+id/imageMech"
+                app:layout_constraintEnd_toEndOf="@+id/imageMech"
+                app:layout_constraintStart_toStartOf="@+id/imageMech" />
+
+            <ImageView
+                android:id="@+id/imageMech"
+                android:layout_width="110dp"
+                android:layout_height="118dp"
+                android:layout_marginStart="136dp"
+                android:layout_marginTop="28dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/mech_blank" />
+
+            <ImageView
+                android:id="@+id/imageR"
+                android:layout_width="83dp"
+                android:layout_height="92dp"
+                android:layout_marginEnd="9dp"
+                app:layout_constraintBottom_toBottomOf="@+id/imageMech"
+                app:layout_constraintEnd_toStartOf="@+id/imageMech"
+                app:layout_constraintTop_toTopOf="@+id/imageMech"
+                app:srcCompat="@drawable/wep_blank_r" />
+
+            <TextView
+                android:id="@+id/textR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ОРУЖИЕ"
+                app:layout_constraintBottom_toTopOf="@+id/imageR"
+                app:layout_constraintEnd_toEndOf="@+id/imageR"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/imageR" />
+
+            <ImageView
+                android:id="@+id/wpnRtype"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                app:layout_constraintBottom_toBottomOf="@+id/textR"
+                app:layout_constraintStart_toEndOf="@+id/textR"
+                app:layout_constraintTop_toTopOf="@+id/textR"
+                app:srcCompat="@drawable/dmg_blank" />
+
+            <ImageView
+                android:id="@+id/imageL"
+                android:layout_width="83dp"
+                android:layout_height="92dp"
+                android:layout_marginStart="9dp"
+                app:layout_constraintBottom_toBottomOf="@+id/imageMech"
+                app:layout_constraintStart_toEndOf="@+id/imageMech"
+                app:layout_constraintTop_toTopOf="@+id/imageMech"
+                app:srcCompat="@drawable/wep_blank_r" />
+
+            <TextView
+                android:id="@+id/textL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ОРУЖИЕ"
+                app:layout_constraintBottom_toTopOf="@+id/imageL"
+                app:layout_constraintEnd_toEndOf="@+id/imageL"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@+id/imageL" />
+
+            <ImageView
+                android:id="@+id/wpnLtype"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                app:layout_constraintBottom_toBottomOf="@+id/textL"
+                app:layout_constraintEnd_toStartOf="@+id/textL"
+                app:layout_constraintTop_toTopOf="@+id/textL"
+                app:srcCompat="@drawable/dmg_blank" />
+
+            <TextView
+                android:id="@+id/rangeR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Дист:"
+                app:layout_constraintEnd_toEndOf="@+id/imageR"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/imageR"
+                app:layout_constraintTop_toBottomOf="@+id/imageR" />
+
+            <TextView
+                android:id="@+id/RrangVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/rangeR"
+                app:layout_constraintStart_toEndOf="@+id/rangeR"
+                app:layout_constraintTop_toTopOf="@+id/rangeR" />
+
+            <TextView
+                android:id="@+id/damageR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Урон:"
+                app:layout_constraintStart_toStartOf="@+id/rangeR"
+                app:layout_constraintTop_toBottomOf="@+id/rangeR" />
+
+            <TextView
+                android:id="@+id/RdmgVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/damageR"
+                app:layout_constraintStart_toEndOf="@+id/damageR"
+                app:layout_constraintTop_toTopOf="@+id/damageR" />
+
+            <TextView
+                android:id="@+id/rangeL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Дист:"
+                app:layout_constraintEnd_toEndOf="@+id/imageL"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/imageL"
+                app:layout_constraintTop_toBottomOf="@+id/imageL" />
+
+            <TextView
+                android:id="@+id/LrangVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/rangeL"
+                app:layout_constraintStart_toEndOf="@+id/rangeL"
+                app:layout_constraintTop_toTopOf="@+id/rangeL" />
+
+            <TextView
+                android:id="@+id/damageL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Урон:"
+                app:layout_constraintStart_toStartOf="@+id/rangeL"
+                app:layout_constraintTop_toBottomOf="@+id/rangeL" />
+
+            <TextView
+                android:id="@+id/LdmgVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/damageL"
+                app:layout_constraintStart_toEndOf="@+id/damageL"
+                app:layout_constraintTop_toTopOf="@+id/damageL" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <View
+            android:id="@+id/divider2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <TextView
+                android:id="@+id/textHP"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Прочность:" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

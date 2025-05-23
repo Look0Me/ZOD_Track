@@ -25,19 +25,33 @@
         android:theme="@style/Theme.DirectTutorial"
         tools:targetApi="31">
         <activity
-            android:name=".Menu"
+            android:name=".ChooseMech"
             android:exported="false" />
-        <!-- MainActivity больше не launcher -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustPan">
+            android:name=".TeamCreate"
+            android:exported="false" />
+        <activity
+            android:name=".TeamEdit"
+            android:exported="false" />
+        <activity
+            android:name=".TeamsOverview"
+            android:exported="false" />
+        <activity
+            android:name=".UnitGallery"
+            android:exported="false" />
+        <activity
+            android:name=".Menu"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
     </application>
 
 </manifest>

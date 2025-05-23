@@ -1,0 +1,41 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_margin="8dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_bg"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/mechNameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Мех: "
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/aliasEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Позывной"
+        android:imeOptions="actionDone"
+        android:inputType="text"/>
+
+    <include layout="@layout/item_unit"
+        android:id="@+id/included"/>
+
+    <!-- Кнопка удаления справа -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btnDel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#E61111"
+            android:text="Удалить" />
+    </LinearLayout>
+</LinearLayout>

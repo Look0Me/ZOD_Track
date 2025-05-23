@@ -1,5 +1,6 @@
 package com.example.zodtrack;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
@@ -10,7 +11,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class Menu extends AppCompatActivity {
-    Button btnConnect, btnTeams, btnNewTeam, btnUnits;
+    Button btnConnect, btnTeams, btnUnits;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,12 +30,19 @@ public class Menu extends AppCompatActivity {
     private void initialWork() {
         btnConnect=findViewById(R.id.btnConnect);
         btnTeams=findViewById(R.id.btnTeams);
-        btnNewTeam=findViewById(R.id.btnNewTeam);
         btnUnits=findViewById(R.id.btnUnits);
     }
 
     private void exqListener() {
+        btnUnits.setOnClickListener(v -> {
+            Intent intent = new Intent(Menu.this, UnitGallery.class);
+            startActivity(intent);
+        });
 
+        btnTeams.setOnClickListener(v -> {
+            Intent intent = new Intent(Menu.this, TeamsOverview.class);
+            startActivity(intent);
+        });
     }
 
 

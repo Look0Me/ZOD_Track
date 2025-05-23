@@ -52,8 +52,8 @@
                 android:id="@+id/imageMech"
                 android:layout_width="110dp"
                 android:layout_height="118dp"
-                android:layout_marginStart="136dp"
                 android:layout_marginTop="28dp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/mech_blank" />
@@ -204,18 +204,26 @@
             android:background="?android:attr/listDivider" />
 
         <LinearLayout
+            android:id="@+id/hpBarContainer"
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp">
 
             <TextView
                 android:id="@+id/textHP"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Прочность:" />
+                android:text="Прочность:"
+                android:layout_gravity="center_vertical" />
 
+            <LinearLayout
+                android:id="@+id/hpBar"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:gravity="center_vertical"/>
         </LinearLayout>
 
     </LinearLayout>

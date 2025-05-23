@@ -21,4 +21,9 @@ public class MechTemplate {
     public int right_wep_rng = 0;        //Дальность правого оружия
     public int right_wep_type = 0;       //Тип правого оружия
     public String right_wep_pic;         //Изображение правого оружия
+
+
+    public String getName() {
+        return name;
+    }
 }

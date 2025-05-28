@@ -215,6 +215,7 @@ public class TeamEdit extends AppCompatActivity {
 
         // Получаем новое имя от пользователя
         String newName = team.getName(); // предполагаем, что team.name обновлён пользователем в интерфейсе
+        team.assignBattleIDs();
 
         // Загружаем текущий список имён
         String orderedJson = prefs.getString("ordered_team_names", "[]");

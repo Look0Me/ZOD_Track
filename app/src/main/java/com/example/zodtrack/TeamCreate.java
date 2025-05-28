@@ -187,6 +187,7 @@ public class TeamCreate extends AppCompatActivity {
         }
 
         team = new Team(teamName, team.getUnits());
+        team.assignBattleIDs();
 
         Gson gson = new Gson();
         String json = gson.toJson(team);
@@ -201,6 +202,7 @@ public class TeamCreate extends AppCompatActivity {
         editor.putString("ordered_team_names", gson.toJson(orderedNames));
 
         editor.apply();
+
         finish();
     }
 

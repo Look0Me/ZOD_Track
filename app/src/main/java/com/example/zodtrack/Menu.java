@@ -43,6 +43,11 @@ public class Menu extends AppCompatActivity {
             Intent intent = new Intent(Menu.this, TeamsOverview.class);
             startActivity(intent);
         });
+
+        btnConnect.setOnClickListener(v -> {
+            Intent intent = new Intent(Menu.this, MainActivity.class);
+            startActivity(intent);
+        });
     }
 
 

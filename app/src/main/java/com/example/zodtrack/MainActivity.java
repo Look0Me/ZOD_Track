@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -15,10 +16,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -29,16 +32,26 @@ import android.Manifest;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -50,11 +63,11 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView connectionStatus, messageTextView;
+    TextView connectionStatus;
     Button discoverButton;
     ListView listView;
-    EditText typeMsg;
-    ImageButton sendButton;
+    CheckBox checkBox;
+    View divider;
 
     WifiP2pManager manager;
     WifiP2pManager.Channel channel;
@@ -71,8 +84,20 @@ public class MainActivity extends AppCompatActivity {
     ServerClass serverClass;
     ClientClass clientClass;
 
-    boolean isHost;
+    Team youTeam, enemyTeam;
 
+    TabLayout tabLayout;
+    ViewPager2 viewPager;
+    TabsAdapter tabsAdapter;
+
+    boolean isHost;
+    boolean swiped = false;
+
+    public static String pendingEnemyTeamName = null;
+    public static String pendingEnemyTeamList = null;
+
+    private int youSize = 0;
+    private int enemySize = 0;
 
     private ActivityResultLauncher<Intent> wifiSettingsLauncher;
     private ActivityResultLauncher<String> requestLocationPermissionLauncher;
@@ -160,6 +185,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            String teamName = data.getStringExtra("selectedTeamName");
+            String teamData = data.getStringExtra("selectedTeamData"); // <- Получили состав команды
+            // можно что-то сделать с выбранным отрядом, например:
+            Toast.makeText(this, "Выбран отряд: " + teamName, Toast.LENGTH_SHORT).show();
+
+            if (serverClass != null) {
+                new Thread(() -> {
+                    serverClass.write(("TEAM_DATA:" + teamName+";"+ teamData).getBytes());
+                }).start();
+            } else if (clientClass != null) {
+                new Thread(() -> {
+                    clientClass.write(("TEAM_DATA:" + teamName+";"+ teamData).getBytes());
+                }).start();
+            }
+
+            PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                    .findFragmentByTag("f0"); // f0 — первый фрагмент ViewPager
+
+            if (playerFragment != null) {
+                playerFragment.setTeamName(teamName);
+            }
+
+        }
+    }
 
     private void checkPermissions() {
         // Проверяем разрешение на местоположение
@@ -308,25 +361,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                String msg = typeMsg.getText().toString();
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(msg!=null && isHost)
-                        {
-                            serverClass.write(msg.getBytes());
-                        }else if(msg !=null && !isHost){
-                            clientClass.write(msg.getBytes());
-                        }
-                    }
-                });
-                typeMsg.setText("");
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                    .findFragmentByTag("f0");
+            if (playerFragment != null) {
+                playerFragment.setDetail(isChecked);
+            }
+
+            EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                    .findFragmentByTag("f1");
+            if (enemyFragment != null) {
+                enemyFragment.setDetail(isChecked);
             }
         });
+
+
     }
 
     private boolean hasAllPermissions() {
@@ -353,12 +402,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialWork() {
         connectionStatus=findViewById(R.id.connectionStatus);
-        messageTextView=findViewById(R.id.messageTextView);
 
         discoverButton=findViewById(R.id.buttonDiscover);
         listView=findViewById(R.id.listView);
-        typeMsg=findViewById(R.id.editTextTypeMsg);
-        sendButton=findViewById(R.id.sendButton);
+        tabLayout = findViewById(R.id.tabLayout);
+        viewPager = findViewById(R.id.viewPager);
+        checkBox = findViewById(R.id.detail);
+        divider = findViewById(R.id.divider6);
+
 
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel =  manager.initialize(this,getMainLooper(),null);
@@ -369,10 +420,36 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 
+        tabsAdapter = new TabsAdapter(this);
+        viewPager.setAdapter(tabsAdapter);
+        viewPager.setOffscreenPageLimit(2);
 
-        typeMsg.setVisibility(View.GONE);
-        sendButton.setVisibility(View.GONE);
-        messageTextView.setVisibility(View.GONE);
+
+
+
+
+        new TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText("Я");
+                            break;
+                        case 1:
+                            tab.setText("Противник");
+                            break;
+                        case 2:
+                            tab.setText("Лог");
+                            break;
+                    }
+                }).attach();
+
+
+        tabLayout.setVisibility(View.GONE);
+        viewPager.setVisibility(View.GONE);
+        tabLayout.setVisibility(View.GONE);
+        viewPager.setVisibility(View.GONE);
+        checkBox.setVisibility(View.GONE);
+        divider.setVisibility(View.GONE);
         listView.setVisibility(View.VISIBLE);
     }
 
@@ -430,10 +507,15 @@ public class MainActivity extends AppCompatActivity {
                 clientClass.start();
             }
 
-            typeMsg.setVisibility(View.VISIBLE);
-            sendButton.setVisibility(View.VISIBLE);
-            messageTextView.setVisibility(View.VISIBLE);
+            tabLayout.setVisibility(View.VISIBLE);
+            viewPager.setVisibility(View.VISIBLE);
+            divider.setVisibility(View.VISIBLE);
             listView.setVisibility(View.GONE);
+            discoverButton.setVisibility(View.GONE);
+            connectionStatus.setVisibility(View.GONE);
+
+            Intent intent = new Intent(MainActivity.this, TeamChoose.class);
+            startActivityForResult(intent, 1001); // используем startActivityForResult, чтобы получить результат
         }
     };
 
@@ -441,6 +523,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(receiver,intentFilter);
+        // Проверяем, если было получено имя противника и фрагмент уже доступен
+        if (pendingEnemyTeamName != null) {
+            EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager().findFragmentByTag("f1"); // f1 — если второй во ViewPager
+            if (enemyFragment != null) {
+                enemyFragment.setTeamName(pendingEnemyTeamName);
+                pendingEnemyTeamName = null; // очищаем, т.к. уже применили
+            } else {
+                Log.d("WiFiDirect", "onResume: EnemyFragment всё ещё null");
+            }
+        }
     }
 
     @Override
@@ -495,16 +587,9 @@ public class MainActivity extends AppCompatActivity {
                                     public void run() {
                                         // Преобразование данных в строку
                                         buffer[finalBytes] = 10;
-                                        String tempMSG = new String(buffer, 0, finalBytes+1);
-//                                        String look = messageTextView.getText();
-                                        if (messageTextView.getText().toString().equals("ReceivedMessage"))
-                                        {
-                                            messageTextView.setText(tempMSG); // Отображение сообщения
-                                        }
-                                        else {
-                                            messageTextView.append(tempMSG); // Отображение сообщения
-                                        }
-                                        Toast.makeText(MainActivity.this, tempMSG, Toast.LENGTH_SHORT).show();
+                                        String tempMSG = new String(buffer, 0, finalBytes + 1);
+
+                                        MainActivity.handleIncomingMessage(tempMSG, MainActivity.this);
                                     }
                                 });
                             }
@@ -516,6 +601,8 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
+
 
 
     public class ClientClass extends Thread{
@@ -569,15 +656,8 @@ public class MainActivity extends AppCompatActivity {
                                         // Преобразование данных в строку
                                         buffer[finalBytes] = 10;
                                         String tempMSG = new String(buffer, 0, finalBytes+1);
-//                                        String look = messageTextView.getText();
-                                        if (messageTextView.getText().toString().equals("ReceivedMessage"))
-                                        {
-                                            messageTextView.setText(tempMSG); // Отображение сообщения
-                                        }
-                                        else {
-                                            messageTextView.append(tempMSG); // Отображение сообщения
-                                        }
-                                        Toast.makeText(MainActivity.this, tempMSG, Toast.LENGTH_SHORT).show();
+
+                                        MainActivity.handleIncomingMessage(tempMSG, MainActivity.this);
                                     }
                                 });
                             }
@@ -591,6 +671,91 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private static void handleIncomingMessage(String msg, Context context) {
+        if (msg.startsWith("TEAM_DATA:")) {
+            String data = msg.substring("TEAM_DATA:".length());
+            int separatorIndex = data.indexOf(';');
+
+            if (separatorIndex != -1) {
+                String enemyTeamName = data.substring(0, separatorIndex);
+                String teamData = data.substring(separatorIndex + 1);
+
+                MainActivity.pendingEnemyTeamName = enemyTeamName;
+                MainActivity.pendingEnemyTeamList = teamData;
+
+
+            } else {
+                Log.w("WiFiDirect", "Некорректный формат TEAM_DATA");
+            }
+
+        }
+
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+
+    }
+
+    public void setYouSize(int size) {
+        this.youSize = size;
+        Log.d("MainActivity", "youSize установлен: " + size);
+    }
+    public void setEnemySize(int size) {
+        this.enemySize = size;
+        Log.d("MainActivity", "enemySize установлен: " + size);
+    }
+
+    public void checkSizes()
+    {
+        if (youSize != 0 && enemySize !=0)
+        {
+            if (isHost)
+            {
+                EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f1"); // или по id, если используешь add(R.id.container, fragment, "PLAYER_FRAGMENT")
+                if (enemyFragment != null) {
+                    enemyFragment.incBattleIDs(youSize);
+                    Toast.makeText(this, "Айди в отряде врага увеличены на " + youSize, Toast.LENGTH_SHORT).show();
+                }
+            }
+            else
+            {
+                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f0"); // или по id, если используешь add(R.id.container, fragment, "PLAYER_FRAGMENT")
+                if (playerFragment != null) {
+                    playerFragment.incBattleIDs(enemySize);
+                    Toast.makeText(this, "АЙДИ ТУТ УВЕЛИЧИЛИ НА " + enemySize, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            checkBox.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void setTeams()
+    {
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag("f0");
+        if (playerFragment != null) {
+            youTeam = playerFragment.getTeam();
+        }
+
+        EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                .findFragmentByTag("f1");
+        if (enemyFragment != null) {
+            enemyTeam = enemyFragment.getTeam();
+        }
+    }
+
+    public List<Team.TeamUnit> getEnemyList(){
+        setTeams();
+        return enemyTeam.getUnits();
+    }
+
+    public void dealDmg(int attackerBID, int dmg, int targetBID)
+    {
+        
+    }
+
 
 }
 

@@ -25,6 +25,12 @@
         android:theme="@style/Theme.DirectTutorial"
         tools:targetApi="31">
         <activity
+            android:name=".ChooseTarget"
+            android:exported="false" />
+        <activity
+            android:name=".TeamChoose"
+            android:exported="false" />
+        <activity
             android:name=".ChooseMech"
             android:exported="false" />
         <activity

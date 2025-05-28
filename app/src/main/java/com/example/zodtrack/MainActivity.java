@@ -99,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
     private int youSize = 0;
     private int enemySize = 0;
 
+    public static MainActivity instance;
+
     private ActivityResultLauncher<Intent> wifiSettingsLauncher;
     private ActivityResultLauncher<String> requestLocationPermissionLauncher;
     private ActivityResultLauncher<String[]> requestNearbyPermissionLauncher;
@@ -145,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
+        instance = this;
+
         // Проверка всех необходимых разрешений
         checkPermissions();
 
@@ -183,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        instance = null;
     }
 
     @Override
@@ -690,6 +695,28 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+        else if (msg.startsWith("ATK_DATA:")) {
+            // Пример строки: ATK_DATA:12;30;25
+            msg = msg.replace("ATK_DATA:", "");
+            msg = msg.replace("\n", "");
+            String[] parts = msg.split(";");
+            if (parts.length == 3) {
+                try {
+                    int attackerBID = Integer.parseInt(parts[0]);
+                    int dmg = Integer.parseInt(parts[1]);
+                    int targetBID = Integer.parseInt(parts[2]);
+
+                    if (MainActivity.instance != null) {
+                        MainActivity.instance.runOnUiThread(() ->
+                                MainActivity.instance.dealDmg(attackerBID, dmg, targetBID, false)
+                        );
+                    }
+                } catch (NumberFormatException e) {
+                    Log.e("ParseError", "Не удалось распарсить ATK_DATA: " + msg);
+                }
+            }
+        }
+
 
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
 
@@ -751,9 +778,60 @@ public class MainActivity extends AppCompatActivity {
         return enemyTeam.getUnits();
     }
 
-    public void dealDmg(int attackerBID, int dmg, int targetBID)
+    public void dealDmg(int attackerBID, int dmg, int targetBID, boolean Send)
     {
-        
+        //Отправка урона во фрагмент
+        if (isHost)
+        {
+            if (targetBID>youSize)//Урон отправляется в enemy
+            {
+                EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f1");
+                if (enemyFragment != null) {
+                    enemyFragment.assignDmg(dmg,targetBID);
+                }
+            }
+            else//Урон отправляется в player
+            {
+                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f0");
+                if (playerFragment != null) {
+                    playerFragment.assignDmg(dmg,targetBID);
+                }
+            }
+        }
+        else
+        {
+            if (targetBID>enemySize)//Урон отправляется в player
+            {
+                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f0");
+                if (playerFragment != null) {
+                    playerFragment.assignDmg(dmg,targetBID);
+                }
+            }
+            else//Урон отправляется в enemy
+            {
+                EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f1");
+                if (enemyFragment != null) {
+                    enemyFragment.assignDmg(dmg,targetBID);
+                }
+            }
+        }
+
+        if (Send)//Отправка на другое устройство
+        {
+            if (serverClass != null) {
+                new Thread(() -> {
+                    serverClass.write(("ATK_DATA:" + attackerBID + ";" + dmg+";"+ targetBID).getBytes());
+                }).start();
+            } else if (clientClass != null) {
+                new Thread(() -> {
+                    clientClass.write(("ATK_DATA:" + attackerBID + ";" + dmg+";"+ targetBID).getBytes());
+                }).start();
+            }
+        }
     }
 
 

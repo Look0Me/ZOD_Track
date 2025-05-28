@@ -96,6 +96,11 @@ public class PlayerFragment extends Fragment {
             TextView hp = cardView.findViewById(R.id.currentHP);
             Button btnActivate = cardView.findViewById(R.id.btnDel); // Используем существующую кнопку
 
+            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
+            {
+                unit.setStatus(2);
+            }
+
 
             mechNameTitle.setText("Мех: " + unit.getMechID());
             aliasText.setText(unit.getAlias());
@@ -144,7 +149,7 @@ public class PlayerFragment extends Fragment {
             {// Заполняем include через MechViewBinder
                 MechTemplate mech = MechLibrary.getMechByID(unit.getMechID());
                 View included = cardView.findViewById(R.id.included);
-                MechViewBinder.bind(included, mech, getContext());
+                MechViewBinder.bind(included, mech, getContext(), unit.getDmg());
             }
             else
             {
@@ -242,14 +247,45 @@ public class PlayerFragment extends Fragment {
                 Log.d("PlayerFragment", "Выбран цель с battleID = " + targetBattleID);
                 // Можно сохранить, отобразить, передать дальше и т.д.
 
-                String atkName = findUnitByBattleID(currentTeam.getUnits(), atkBattleID).getMechID();
+                List<Team.TeamUnit> yourUnits = currentTeam.getUnits();
+                int id1 = yourUnits.get(0).getBattleID();
+                int youSize = 0;
+                int enemySize = 0;
+                String targetName;
+
+                youSize = yourUnits.size();
+                enemySize = enemyUnits.size();
+
+                String atkName = findUnitByBattleID(yourUnits, atkBattleID).getMechID();
                 int side = 0;//Правая пушка по умолчанию
-                String targetName = findUnitByBattleID(enemyUnits, targetBattleID).getMechID();
+
+                if (id1 == 1)//Хост
+                {
+                    if (targetBattleID>youSize)
+                    {
+                        targetName = findUnitByBattleID(enemyUnits, targetBattleID).getMechID();
+                    }
+                    else
+                    {
+                        targetName = findUnitByBattleID(yourUnits, targetBattleID).getMechID();
+                    }
+                }
+                else//Клиент
+                {
+                    if (targetBattleID>enemySize)
+                    {
+                        targetName = findUnitByBattleID(yourUnits, targetBattleID).getMechID();
+                    }
+                    else
+                    {
+                        targetName = findUnitByBattleID(enemyUnits, targetBattleID).getMechID();
+                    }
+                }
 
 
                 int dmg = calcDmg(atkName, side, targetName);//Расчёт урона
 
-                ((MainActivity) requireActivity()).dealDmg(atkBattleID, dmg, targetBattleID);
+                ((MainActivity) requireActivity()).dealDmg(atkBattleID, dmg, targetBattleID, true);
 
             }
         }
@@ -262,6 +298,19 @@ public class PlayerFragment extends Fragment {
             }
         }
         return null; // Если не найден
+    }
+
+    public void assignDmg(int dmg, int battleID)
+    {
+        for (Team.TeamUnit unit : currentTeam.getUnits())
+        {
+            if (unit.getBattleID()==battleID)
+            {
+                unit.addDmg(dmg);
+                displayTeam();
+                break;
+            }
+        }
     }
 
 

@@ -112,8 +112,12 @@ public class Team implements Serializable {
             return dmg;
         }
 
-        public void setDmg(int dmg) {
-            this.dmg = dmg;
+        public void addDmg(int dmg) {
+            this.dmg += dmg;
+        }
+
+        public void subDmg(int dmg) {
+            this.dmg -= dmg;
         }
     }
 }

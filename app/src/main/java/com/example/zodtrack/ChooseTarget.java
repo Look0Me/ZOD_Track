@@ -108,7 +108,7 @@ public class ChooseTarget extends AppCompatActivity {
             if (ShowDetails) {
                 MechTemplate mech = MechLibrary.getMechByID(unit.getMechID());
                 View included = cardView.findViewById(R.id.included);
-                MechViewBinder.bind(included, mech, this);
+                MechViewBinder.bind(included, mech, this, unit.getDmg());
             } else {
                 View included = cardView.findViewById(R.id.included);
                 if (included != null) {

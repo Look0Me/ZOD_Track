@@ -98,6 +98,11 @@ public class EnemyFragment extends Fragment {
             TextView destroyed = cardView.findViewById(R.id.destroyed);
             TextView hp = cardView.findViewById(R.id.currentHP);
 
+            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
+            {
+                unit.setStatus(2);
+            }
+
             mechNameTitle.setText("Мех: " + unit.getMechID());
             aliasText.setText(unit.getAlias());
 
@@ -115,7 +120,7 @@ public class EnemyFragment extends Fragment {
             {// Заполняем include через MechViewBinder
                 MechTemplate mech = MechLibrary.getMechByID(unit.getMechID());
                 View included = cardView.findViewById(R.id.included);
-                MechViewBinder.bind(included, mech, getContext());
+                MechViewBinder.bind(included, mech, getContext(), unit.getDmg());
             }
             else
             {
@@ -170,5 +175,18 @@ public class EnemyFragment extends Fragment {
 
     public Team getTeam(){
         return enemyTeam;
+    }
+
+    public void assignDmg(int dmg, int battleID)
+    {
+        for (Team.TeamUnit unit : enemyTeam.getUnits())
+        {
+            if (unit.getBattleID()==battleID)
+            {
+                unit.addDmg(dmg);
+                displayTeam();
+                break;
+            }
+        }
     }
 }

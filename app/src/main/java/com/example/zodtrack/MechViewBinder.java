@@ -14,6 +14,10 @@ import com.example.zodtrack.mechs.MechTemplate;
 public class MechViewBinder {
 
     public static void bind(View itemView, MechTemplate mech, Context context) {
+        bind(itemView, mech, context, 0); // значение по умолчанию = 0
+    }
+
+    public static void bind(View itemView, MechTemplate mech, Context context, int dmg) {
         TextView name = itemView.findViewById(R.id.mechName);
         TextView abilityName = itemView.findViewById(R.id.abilityName);
         TextView abilityDesc = itemView.findViewById(R.id.abilityDescription);
@@ -74,9 +78,15 @@ public class MechViewBinder {
             hpCell.setPadding(6, 2, 6, 2);
             hpCell.setTextColor(Color.WHITE);
 
+
             if (i == 0) {
                 hpCell.setBackground(ContextCompat.getDrawable(context, R.drawable.hp_cell_red));
-            } else if (i < mech.ability_hp) {
+            }else if (dmg>0)
+            {
+                hpCell.setBackground(ContextCompat.getDrawable(context, R.drawable.hp_cell_gray));
+                dmg--;
+            }
+            else if (i < mech.ability_hp) {
                 hpCell.setBackground(ContextCompat.getDrawable(context, R.drawable.hp_cell_yellow));
             } else {
                 hpCell.setBackground(ContextCompat.getDrawable(context, R.drawable.hp_cell_green));

@@ -17,7 +17,7 @@ public class Minotavr extends MechTemplate{
         left_wep_type = 0;
         left_wep_pic = "wep_mini_l";
 
-        right_wep_dmg = 10;
+        right_wep_dmg = 3;
         right_wep_rng = 8;
         right_wep_type = 0;
         right_wep_pic = "wep_mini_r";

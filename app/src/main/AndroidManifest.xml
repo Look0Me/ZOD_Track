@@ -25,6 +25,12 @@
         android:theme="@style/Theme.DirectTutorial"
         tools:targetApi="31">
         <activity
+            android:name=".Remote"
+            android:exported="false" />
+        <activity
+            android:name=".ResultScreen"
+            android:exported="false" />
+        <activity
             android:name=".ChooseTarget"
             android:exported="false" />
         <activity

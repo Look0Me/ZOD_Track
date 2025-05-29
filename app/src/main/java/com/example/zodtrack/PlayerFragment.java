@@ -37,6 +37,8 @@ public class PlayerFragment extends Fragment {
     List<Team.TeamUnit> enemyUnits;
 
     private boolean details = true;
+    private boolean yourTurn = false;
+    private boolean enemyOut = false;
 
     private static final int REQUEST_TARGET = 1234;
 
@@ -96,10 +98,10 @@ public class PlayerFragment extends Fragment {
             TextView hp = cardView.findViewById(R.id.currentHP);
             Button btnActivate = cardView.findViewById(R.id.btnDel); // Используем существующую кнопку
 
-            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
-            {
-                unit.setStatus(2);
-            }
+//            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
+//            {
+//                unit.setStatus(2);
+//            }
 
 
             mechNameTitle.setText("Мех: " + unit.getMechID());
@@ -115,23 +117,26 @@ public class PlayerFragment extends Fragment {
                     activated.setVisibility(View.GONE);
                     destroyed.setVisibility(View.GONE);
                     // Назначаем действие кнопки
-                    btnActivate.setOnClickListener(v -> {
-                        Toast.makeText(getContext(), "Мех " + unit.getAlias() + " активирован", Toast.LENGTH_SHORT).show();
-                        unit.setStatus(1);
 
-                        MainActivity activity = (MainActivity) requireActivity();
+                    if (yourTurn)
+                    {
+                        btnActivate.setOnClickListener(v -> {
+                            Toast.makeText(getContext(), "Мех " + unit.getAlias() + " активирован", Toast.LENGTH_SHORT).show();
+                            unit.setStatus(1);
 
-                        enemyUnits = activity.getEnemyList();
-                        List<Team.TeamUnit> yourUnits = currentTeam.getUnits();
+                            MainActivity activity = (MainActivity) requireActivity();
+                            enemyUnits = activity.getEnemyList();
+                            List<Team.TeamUnit> yourUnits = currentTeam.getUnits();
 
-                        Intent intent = new Intent(getContext(), ChooseTarget.class);
-                        intent.putExtra("enemyUnits", new ArrayList<>(enemyUnits));
-                        intent.putExtra("yourUnits", new ArrayList<>(yourUnits));
-                        intent.putExtra("thisUnit", unit.getBattleID());
-                        startActivityForResult(intent, REQUEST_TARGET);
+                            Intent intent = new Intent(getContext(), ChooseTarget.class);
+                            intent.putExtra("enemyUnits", new ArrayList<>(enemyUnits));
+                            intent.putExtra("yourUnits", new ArrayList<>(yourUnits));
+                            intent.putExtra("thisUnit", unit.getBattleID());
+                            startActivityForResult(intent, REQUEST_TARGET);
 
-                        displayTeam();
-                    });
+                        });
+                    }
+                    else {btnActivate.setVisibility(View.GONE);}
                     break;
                 case 1: //Мех активирован
                     btnActivate.setVisibility(View.GONE);
@@ -240,12 +245,13 @@ public class PlayerFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_TARGET && resultCode == Activity.RESULT_OK && data != null) {
+
+            //Начало обработки урона
             int targetBattleID = data.getIntExtra("targetBattleID", -1);
             int atkBattleID = data.getIntExtra("atkBattleID", -1);
             if (targetBattleID != -1) {
-                // Тут ты получил ID выбранного врага
+
                 Log.d("PlayerFragment", "Выбран цель с battleID = " + targetBattleID);
-                // Можно сохранить, отобразить, передать дальше и т.д.
 
                 List<Team.TeamUnit> yourUnits = currentTeam.getUnits();
                 int id1 = yourUnits.get(0).getBattleID();
@@ -286,6 +292,30 @@ public class PlayerFragment extends Fragment {
                 int dmg = calcDmg(atkName, side, targetName);//Расчёт урона
 
                 ((MainActivity) requireActivity()).dealDmg(atkBattleID, dmg, targetBattleID, true);
+                //Конец обработки урона
+
+
+                //Начало обработки передачи хода
+                MainActivity activity = (MainActivity) requireActivity();
+                List<Team.TeamUnit> youUnits = currentTeam.getUnits();
+
+                int inactive = 0;
+                for (Team.TeamUnit tmpunit : youUnits)
+                {
+                    if (tmpunit.getStatus()==0){ inactive++;}
+                }
+
+                if (inactive==0 && enemyOut) {activity.initNewRound();}
+                else if (inactive==0) {activity.letFinish();}
+                else if (enemyOut) {}
+                else
+                {
+                    activity.endTurn();
+                    yourTurn = false;//Ход заканчивается при активации меха
+                }
+
+                displayTeam();
+                //Конец обработки передачи хода
 
             }
         }
@@ -311,6 +341,28 @@ public class PlayerFragment extends Fragment {
                 break;
             }
         }
+    }
+
+    public void setTurn(boolean yourTurn)
+    {
+        this.yourTurn = yourTurn;
+        displayTeam();
+    }
+
+    public void setEnemyOut(boolean enemyOut)
+    {
+        this.enemyOut = enemyOut;
+    }
+
+    public void newRound()
+    {
+        for (Team.TeamUnit tmpunit : currentTeam.getUnits())
+        {
+            if (tmpunit.getStatus()==1){ tmpunit.setStatus(0);}
+            if (tmpunit.getDmg() >= tmpunit.getMax_hp()){ tmpunit.setStatus(2);}
+        }
+        yourTurn = false;
+        enemyOut = false;
     }
 
 

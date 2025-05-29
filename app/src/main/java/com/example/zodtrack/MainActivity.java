@@ -1,11 +1,12 @@
 package com.example.zodtrack;
 
+import static java.lang.Thread.sleep;
+
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -22,8 +23,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,26 +31,20 @@ import android.Manifest;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -64,6 +57,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     TextView connectionStatus;
+    TextView roundCnt;
     Button discoverButton;
     ListView listView;
     CheckBox checkBox;
@@ -91,13 +85,16 @@ public class MainActivity extends AppCompatActivity {
     TabsAdapter tabsAdapter;
 
     boolean isHost;
-    boolean swiped = false;
+    boolean isFirst = false;
 
     public static String pendingEnemyTeamName = null;
     public static String pendingEnemyTeamList = null;
 
     private int youSize = 0;
     private int enemySize = 0;
+    private int round = 0;
+
+
 
     public static MainActivity instance;
 
@@ -216,6 +213,15 @@ public class MainActivity extends AppCompatActivity {
                 playerFragment.setTeamName(teamName);
             }
 
+        }
+        if (requestCode == 123 && resultCode == RESULT_OK) {
+            closeConnections();
+            try {
+                Thread.sleep(1000); // Пауза 1 секунда
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            finish(); // Закрыть MainActivity, когда ResultScreen сообщает об окончании
         }
     }
 
@@ -407,13 +413,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialWork() {
         connectionStatus=findViewById(R.id.connectionStatus);
-
         discoverButton=findViewById(R.id.buttonDiscover);
         listView=findViewById(R.id.listView);
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
         checkBox = findViewById(R.id.detail);
         divider = findViewById(R.id.divider6);
+        roundCnt = findViewById(R.id.roundCount);
+
+        setRoundCnt();
 
 
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -450,6 +458,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         tabLayout.setVisibility(View.GONE);
+        roundCnt.setVisibility(View.GONE);
         viewPager.setVisibility(View.GONE);
         tabLayout.setVisibility(View.GONE);
         viewPager.setVisibility(View.GONE);
@@ -605,6 +614,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        public void stopServer() {
+            try {
+                if (inputStream != null) inputStream.close();
+                if (outputStream != null) outputStream.close();
+                if (socket != null && !socket.isClosed()) socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -675,6 +694,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        public void stopClient() {
+            try {
+                if (inputStream != null) inputStream.close();
+                if (outputStream != null) outputStream.close();
+                if (socket != null && !socket.isClosed()) socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void handleIncomingMessage(String msg, Context context) {
@@ -695,7 +723,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        else if (msg.startsWith("ATK_DATA:")) {
+        else if (msg.startsWith("ATK_DATA:"))
+        {
             // Пример строки: ATK_DATA:12;30;25
             msg = msg.replace("ATK_DATA:", "");
             msg = msg.replace("\n", "");
@@ -714,6 +743,30 @@ public class MainActivity extends AppCompatActivity {
                 } catch (NumberFormatException e) {
                     Log.e("ParseError", "Не удалось распарсить ATK_DATA: " + msg);
                 }
+            }
+        }
+        else if (msg.startsWith("TURN_OVER"))
+        {
+            if (MainActivity.instance != null) {
+                MainActivity.instance.runOnUiThread(() ->
+                        MainActivity.instance.startTurn()
+                );
+            }
+        }
+        else if (msg.startsWith("UNITS_OVER"))
+        {
+            if (MainActivity.instance != null) {
+                MainActivity.instance.runOnUiThread(() ->
+                        MainActivity.instance.finishRound()
+                );
+            }
+        }
+        else if (msg.startsWith("ROUND_OVER"))
+        {
+            if (MainActivity.instance != null) {
+                MainActivity.instance.runOnUiThread(() ->
+                        MainActivity.instance.startNewRound()
+                );
             }
         }
 
@@ -738,16 +791,24 @@ public class MainActivity extends AppCompatActivity {
             if (isHost)
             {
                 EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
-                        .findFragmentByTag("f1"); // или по id, если используешь add(R.id.container, fragment, "PLAYER_FRAGMENT")
+                        .findFragmentByTag("f1");
                 if (enemyFragment != null) {
                     enemyFragment.incBattleIDs(youSize);
                     Toast.makeText(this, "Айди в отряде врага увеличены на " + youSize, Toast.LENGTH_SHORT).show();
                 }
+
+                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f0");
+                if (playerFragment != null) {
+                    playerFragment.setTurn(true);
+                    isFirst = true;
+                }
+
             }
             else
             {
                 PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
-                        .findFragmentByTag("f0"); // или по id, если используешь add(R.id.container, fragment, "PLAYER_FRAGMENT")
+                        .findFragmentByTag("f0");
                 if (playerFragment != null) {
                     playerFragment.incBattleIDs(enemySize);
                     Toast.makeText(this, "АЙДИ ТУТ УВЕЛИЧИЛИ НА " + enemySize, Toast.LENGTH_SHORT).show();
@@ -755,6 +816,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             checkBox.setVisibility(View.VISIBLE);
+            roundCnt.setVisibility(View.VISIBLE);
         }
     }
 
@@ -833,6 +895,200 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    public void endTurn()
+    {
+        if (serverClass != null) {
+            new Thread(() -> {
+                serverClass.write(("TURN_OVER").getBytes());
+            }).start();
+        } else if (clientClass != null) {
+            new Thread(() -> {
+                clientClass.write(("TURN_OVER").getBytes());
+            }).start();
+        }
+    }
+
+    public void letFinish() {
+        if (serverClass != null) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(500); // Пауза 1 секунда
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClass.write(("UNITS_OVER").getBytes());
+            }).start();
+        } else if (clientClass != null) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(500); // Пауза 1 секунда
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                clientClass.write(("UNITS_OVER").getBytes());
+            }).start();
+        }
+    }
+
+    public void startTurn()
+    {
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag("f0");
+        if (playerFragment != null) {
+            playerFragment.setTurn(true);
+        }
+    }
+
+    public void finishRound()
+    {
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag("f0");
+        if (playerFragment != null) {
+            playerFragment.setTurn(true);
+            playerFragment.setEnemyOut(true);
+        }
+    }
+
+    public void initNewRound()
+    {
+
+
+        isFirst = !isFirst;
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag("f0");
+        if (playerFragment != null) {
+            playerFragment.newRound();//Деактивация активированных мехов. Уничтожение соответствующих.
+        }
+
+        EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                .findFragmentByTag("f1");
+        if (enemyFragment != null) {
+            enemyFragment.newRound();
+        }
+
+        if (serverClass != null) {
+            new Thread(() -> {
+
+                try {
+                    Thread.sleep(1000); // Пауза 1 секунда
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClass.write(("ROUND_OVER").getBytes());
+            }).start();
+        } else if (clientClass != null) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1000); // Пауза 1 секунда
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                clientClass.write(("ROUND_OVER").getBytes());
+
+            }).start();
+        }
+
+        try {
+            sleep(1000); // Пауза 1 секунда
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        checkForLiving();//Проверка команд на наличие рабочих юнитов
+        setRoundCnt();
+    }
+
+    public void startNewRound()
+    {
+
+
+
+        isFirst = !isFirst;
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
+                .findFragmentByTag("f0");
+        if (playerFragment != null) {
+            playerFragment.newRound();//Деактивация активированных мехов. Уничтожение соответствующих.
+        }
+
+        EnemyFragment enemyFragment = (EnemyFragment) getSupportFragmentManager()
+                .findFragmentByTag("f1");
+        if (enemyFragment != null) {
+            enemyFragment.newRound();
+        }
+
+        if (isFirst)
+        {
+            if (playerFragment != null) {
+                playerFragment.setTurn(true);//Деактивация активированных мехов. Уничтожение соответствующих.
+            }
+        }
+        else
+        {
+            endTurn();
+        }
+        setRoundCnt();
+
+        checkForLiving();//Проверка команд на наличие рабочих юнитов
+    }
+
+    void setRoundCnt()
+    {
+        round++;
+        roundCnt.setText("Раунд "+round);
+    }
+
+    void checkForLiving()
+    {
+        setTeams();
+
+        int yourHP = 0;
+        int enemyHP = 0;
+
+        for (Team.TeamUnit unit : youTeam.getUnits())
+        {
+            if ((unit.getMax_hp()- unit.getDmg())>0) {yourHP+=(unit.getMax_hp() - unit.getDmg());}
+        }
+
+        for (Team.TeamUnit unit : enemyTeam.getUnits())
+        {
+            if ((unit.getMax_hp()- unit.getDmg())>0) {enemyHP+=(unit.getMax_hp() - unit.getDmg());}
+        }
+
+        if (yourHP == 0 && enemyHP == 0) //Ничья
+        {
+            Intent intent = new Intent(MainActivity.this, ResultScreen.class);
+            intent.putExtra("game_result", 1);
+            startActivityForResult(intent, 123); // Запускаем, не закрывая
+        }
+        else if (yourHP == 0)//Проигрыш
+        {
+            Intent intent = new Intent(MainActivity.this, ResultScreen.class);
+            intent.putExtra("game_result", 2);
+            startActivityForResult(intent, 123); // Запускаем, не закрывая
+        }
+        else if (enemyHP == 0)//Победа
+        {
+            Intent intent = new Intent(MainActivity.this, ResultScreen.class);
+            intent.putExtra("game_result", 3);
+            startActivityForResult(intent, 123); // Запускаем, не закрывая
+        }
+
+
+    }
+
+    public void closeConnections() {
+        try {
+            if (clientClass != null) {
+                clientClass.stopClient();
+            }
+            if (serverClass != null) {
+                serverClass.stopServer();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 }

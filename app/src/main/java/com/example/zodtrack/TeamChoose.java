@@ -2,6 +2,7 @@ package com.example.zodtrack;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 public class TeamChoose extends AppCompatActivity {
     private Team selectedTeam;
     private FloatingActionButton btnFinish;
+    private View selectedItemView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +90,14 @@ public class TeamChoose extends AppCompatActivity {
             teamCnt.setText("x" + team.getUnits().size());
 
             itemView.setOnClickListener(v -> {
+                if (selectedItemView != null) {
+                    selectedItemView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                }
+
+                // Установить фон для текущего
+                selectedItemView = itemView;
+                itemView.setBackgroundColor(Color.parseColor("#b0b0b0"));
+
                 selectedTeam = team;
                 btnFinish.setVisibility(View.VISIBLE);
             });

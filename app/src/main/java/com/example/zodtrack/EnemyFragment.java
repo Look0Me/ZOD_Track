@@ -98,10 +98,10 @@ public class EnemyFragment extends Fragment {
             TextView destroyed = cardView.findViewById(R.id.destroyed);
             TextView hp = cardView.findViewById(R.id.currentHP);
 
-            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
-            {
-                unit.setStatus(2);
-            }
+//            if (unit.getDmg()>= unit.getMax_hp())//ВРЕМЕННАЯ РЕАЛИЗАЦИЯ
+//            {
+//                unit.setStatus(2);
+//            }
 
             mechNameTitle.setText("Мех: " + unit.getMechID());
             aliasText.setText(unit.getAlias());
@@ -187,6 +187,15 @@ public class EnemyFragment extends Fragment {
                 displayTeam();
                 break;
             }
+        }
+    }
+
+    public void newRound()
+    {
+        for (Team.TeamUnit tmpunit : enemyTeam.getUnits())
+        {
+            if (tmpunit.getStatus()==1){ tmpunit.setStatus(0);}
+            if (tmpunit.getDmg() >= tmpunit.getMax_hp()){ tmpunit.setStatus(2);}
         }
     }
 }

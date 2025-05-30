@@ -64,7 +64,8 @@ public class Team implements Serializable {
         private int battleID;
         private int status; // 0 - не активирован, 1 - активирован, 2 - уничтожен
         private int max_hp;
-        private int dmg;    // полученный урон
+        private int dmg;
+        private boolean BSstatus=true;// полученный урон
 
         public TeamUnit(String mechID, String alias) {
             this.mechID = mechID;
@@ -72,8 +73,17 @@ public class Team implements Serializable {
             this.battleID = -1;
             this.status = 0;
             this.dmg = 0;
+            this.BSstatus = true;
 
             setMax_hp(Objects.requireNonNull(MechLibrary.getMechByID(mechID)).hp);
+        }
+
+        public void setBSstatus(boolean BSstatus) {
+            this.BSstatus = BSstatus;
+        }
+
+        public boolean getBSstatus() {
+            return BSstatus;
         }
 
         public void setMax_hp(int max_hp){this.max_hp = max_hp; }

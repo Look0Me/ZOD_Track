@@ -196,6 +196,24 @@
                 app:layout_constraintStart_toEndOf="@+id/damageL"
                 app:layout_constraintTop_toTopOf="@+id/damageL" />
 
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="5dp"
+                app:layout_constraintEnd_toEndOf="@+id/imageR"
+                app:layout_constraintTop_toBottomOf="@+id/imageR"
+                app:srcCompat="@drawable/wep_r" />
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="5dp"
+                app:layout_constraintEnd_toEndOf="@+id/imageL"
+                app:layout_constraintTop_toBottomOf="@+id/imageL"
+                app:srcCompat="@drawable/wep_l" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
         <View
             android:id="@+id/divider2"

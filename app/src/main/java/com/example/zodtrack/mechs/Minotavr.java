@@ -9,7 +9,7 @@ public class Minotavr extends MechTemplate{
 
         ability = "Тепловой сканер";
         ability_id = "heat_scan";
-        ability_desc = "Когда Минотавр атакует, то вместе с кубиками атаке бросьте символьный кубик: \n> - урон (x1); * - урон (x2); O - урон (x3);";
+        ability_desc = "Когда Минотавр атакует, то вместе с кубиками атаки бросьте символьный кубик: \n> - урон (x1) \n* - урон (x2) \nO - урон (x3)";
         ability_hp = 6;
 
         left_wep_dmg = 3;

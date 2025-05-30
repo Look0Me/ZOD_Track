@@ -2,12 +2,12 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.DirectTutorial" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorPrimaryVariant">@color/colorOnPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
-        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondary">@color/white</item>
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <item name="colorOnBackground">@color/colorOnBackground</item>
-        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorSurface">@color/colorPrimary</item>
         <item name="colorOnSurface">@color/colorOnSurface</item>
 
         <!-- Кастомизация компонентов -->

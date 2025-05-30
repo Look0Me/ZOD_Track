@@ -17,13 +17,12 @@ public class TabsAdapter extends FragmentStateAdapter {
         switch (position) {
             case 0: return new PlayerFragment();
             case 1: return new EnemyFragment();
-            case 2: return new LogFragment();
             default: return new PlayerFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return 3;
+        return 2;
     }
 }

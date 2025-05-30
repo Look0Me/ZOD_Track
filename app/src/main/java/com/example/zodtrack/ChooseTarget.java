@@ -30,6 +30,7 @@ public class ChooseTarget extends AppCompatActivity {
 
     List<Team.TeamUnit> enemyUnits, yourUnits;
     int thisID;
+    int side;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,8 @@ public class ChooseTarget extends AppCompatActivity {
         Intent intent = getIntent();
         enemyUnits = (List<Team.TeamUnit>) intent.getSerializableExtra("enemyUnits");
         yourUnits = (List<Team.TeamUnit>) intent.getSerializableExtra("yourUnits");
-        thisID = (int) intent.getSerializableExtra("thisUnit");
+        thisID = (int) intent.getIntExtra("thisUnit", -1);
+        side = (int) intent.getIntExtra("weaponSide", -1);
 
         initialWork();
         exqListeners();
@@ -93,6 +95,7 @@ public class ChooseTarget extends AppCompatActivity {
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("targetBattleID", unit.getBattleID());
                 resultIntent.putExtra("atkBattleID", thisID);
+                resultIntent.putExtra("wepSide", side);
                 setResult(RESULT_OK, resultIntent);
                 finish(); // Закрываем активити
             });

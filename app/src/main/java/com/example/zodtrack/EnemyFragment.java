@@ -195,6 +195,10 @@ public class EnemyFragment extends Fragment {
         for (Team.TeamUnit tmpunit : enemyTeam.getUnits())
         {
             if (tmpunit.getStatus()==1){ tmpunit.setStatus(0);}
+            if (tmpunit.getBSstatus() && (tmpunit.getMax_hp() - tmpunit.getDmg() < MechLibrary.getMechByID(tmpunit.getMechID()).ability_hp))
+            {
+                tmpunit.setBSstatus(false);
+            }
             if (tmpunit.getDmg() >= tmpunit.getMax_hp()){ tmpunit.setStatus(2);}
         }
     }

@@ -450,9 +450,6 @@ public class MainActivity extends AppCompatActivity {
                         case 1:
                             tab.setText("Противник");
                             break;
-                        case 2:
-                            tab.setText("Лог");
-                            break;
                     }
                 }).attach();
 
@@ -771,7 +768,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();//Вывод принятых сообщений
 
     }
 
@@ -794,7 +791,7 @@ public class MainActivity extends AppCompatActivity {
                         .findFragmentByTag("f1");
                 if (enemyFragment != null) {
                     enemyFragment.incBattleIDs(youSize);
-                    Toast.makeText(this, "Айди в отряде врага увеличены на " + youSize, Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(this, "Айди в отряде врага увеличены на " + youSize, Toast.LENGTH_SHORT).show();
                 }
 
                 PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager()
@@ -811,7 +808,7 @@ public class MainActivity extends AppCompatActivity {
                         .findFragmentByTag("f0");
                 if (playerFragment != null) {
                     playerFragment.incBattleIDs(enemySize);
-                    Toast.makeText(this, "АЙДИ ТУТ УВЕЛИЧИЛИ НА " + enemySize, Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(this, "АЙДИ ТУТ УВЕЛИЧИЛИ НА " + enemySize, Toast.LENGTH_SHORT).show();
                 }
             }
 

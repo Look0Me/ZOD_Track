@@ -210,9 +210,6 @@ public class TeamEdit extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
 
-        // Получаем старое имя отряда
-//        String oldName = getIntent().getParcelableExtra("team").getName();
-
         // Получаем новое имя от пользователя
         String newName = team.getName(); // предполагаем, что team.name обновлён пользователем в интерфейсе
         team.assignBattleIDs();

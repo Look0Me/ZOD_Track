@@ -22,4 +22,5 @@ public class Minotavr extends MechTemplate{
         right_wep_type = 0;
         right_wep_pic = "wep_mini_r";
     }
+
 }

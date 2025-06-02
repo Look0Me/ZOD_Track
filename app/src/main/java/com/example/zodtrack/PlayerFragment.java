@@ -215,25 +215,25 @@ public class PlayerFragment extends Fragment {
         teamView.setVisibility(View.VISIBLE);
 
         //Начало обработки передачи хода
-                MainActivity activity = (MainActivity) requireActivity();
-                List<Team.TeamUnit> youUnits = currentTeam.getUnits();
+        MainActivity activity = (MainActivity) requireActivity();
+        List<Team.TeamUnit> youUnits = currentTeam.getUnits();
 
-                int inactive = 0;
-                for (Team.TeamUnit tmpunit : youUnits)
-                {
-                    if (tmpunit.getStatus()==0){ inactive++;}
-                }
+        int inactive = 0;
+        for (Team.TeamUnit tmpunit : youUnits)
+        {
+            if (tmpunit.getStatus()==0){ inactive++;}
+        }
 
-                if (inactive==0 && enemyOut) {activity.initNewRound();}
-                else if (inactive==0) {activity.letFinish();}
-                else if (enemyOut) {}
-                else
-                {
-                    activity.endTurn();
-                    yourTurn = false;//Ход заканчивается при активации меха
-                }
+        if (inactive==0 && enemyOut) {activity.initNewRound();}
+        else if (inactive==0) {activity.letFinish();}
+        else if (enemyOut) {}
+        else
+        {
+            activity.endTurn();
+            yourTurn = false;//Ход заканчивается при активации меха
+        }
 
-                displayTeam();
+        displayTeam();
 //                //Конец обработки передачи хода
     }
 
@@ -475,8 +475,6 @@ public class PlayerFragment extends Fragment {
             }
         }
 
-        //TODO ДОБАВИТЬ СТАТУС БОЕВОЙ СИСТЕМЫ В TEAMUNIT И ОБНОВЛЯТЬ ЕГО В КОНЦЕ РАУНДА
-
         if (side == 0)
         {
             Toast.makeText(getContext(), "Урон справа: " + dmg, Toast.LENGTH_SHORT).show();//Вывод урона
@@ -593,6 +591,8 @@ public class PlayerFragment extends Fragment {
             if (unit.getBattleID()==battleID)
             {
                 unit.addDmg(dmg);
+                if (dmg > 0)
+                    Toast.makeText(getContext(), unit.getAlias() + " получил " + dmg + " урона.", Toast.LENGTH_SHORT).show();
                 displayTeam();
                 break;
             }
